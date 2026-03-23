@@ -1,5 +1,45 @@
-html 
-    head    
-        title #{title}
-    body 
-        block content
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title #{title}
+    link(rel="stylesheet", href="/style.css")
+  body
+    header.site-header
+      .header-left
+        a.logo(href="/") Info Games
+      nav.nav-links
+        a(href="/") Home
+        a(href="/tips") Tips
+        a(href="/users") Users
+        a(href="/tags") Tags
+        a(href="/help") Help
+        a(href="/about") About
+      .header-right
+        if currentUser
+          a.header-btn(href="/my-account") My Account
+          a.header-btn.alt(href="/saved-tips") Saved
+          a.header-btn.logout(href="/logout") Log out
+        else
+          a.header-btn(href="/login") Log in
+          a.header-btn.alt(href="/signup") Sign up
+
+    .search-bar-wrap
+      form.search-box(action="/search", method="get")
+        input(type="text", name="q", placeholder="Search tips, games, tricks...")
+        button(type="submit") Search
+
+    .theme-toggle-global
+      span Theme
+      label.switch
+        input(type="checkbox", id="themeToggle")
+        span.slider-toggle
+
+    main.main-content
+      block content
+
+    footer.site-footer
+      p Info Games © 2026 | Gaming Tips & Tricks Platform
+
+    script(src="/home.js")

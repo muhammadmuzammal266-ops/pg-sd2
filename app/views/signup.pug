@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  .simple-page
+    .form-box
+      h2 Sign Up
+      if message
+        p.success-message #{message}
+      if error
+        p.error-message #{error}
+
+      form(action="/signup", method="post")
+        label Username
+        input(type="text", name="username", required)
+        label Email
+        input(type="email", name="email", required)
+        label Password
+        input(type="password", name="password", required)
+        label Bio
+        textarea(name="bio", rows="4")
+        button.read-more(type="submit") Create Account
+
+      p.form-link
+        | Already have an account?
+        a(href="/login")  Log in

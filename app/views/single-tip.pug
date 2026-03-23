@@ -1,0 +1,59 @@
+extends layout
+
+block content
+  .page-shell
+    .detail-box
+      .tip-card-top
+        .tip-author
+          img.author-avatar.large(src=tip.profile_image || "/default-avatar.svg", alt="user")
+          div
+            h1.page-title #{tip.title}
+            p.small-meta Posted by #{tip.username}
+        .tip-menu
+          button.menu-btn(type="button") ⋯
+          .menu-dropdown
+            if currentUser && currentUser.id === tip.user_id
+              a(href=`/tips/${tip.id}/edit`) Edit Tip
+              form(action=`/tips/${tip.id}/delete`, method="post")
+                button.dropdown-action(type="submit") Delete Tip
+            else if currentUser
+              if isSaved
+                form(action=`/unsave-tip/${tip.id}`, method="post")
+                  button.dropdown-action(type="submit") Remove Saved Tip
+              else
+                form(action=`/save-tip/${tip.id}`, method="post")
+                  button.dropdown-action(type="submit") Save Tip
+            else
+              a(href="/login") Log in to Save
+
+      p
+        strong Game:
+        |  #{tip.game_name}
+      p
+        strong Description:
+        |  #{tip.content}
+
+    .comments-section
+      h2.section-heading Comments
+
+      if currentUser
+        .form-box.comment-form-box
+          form(action=`/tips/${tip.id}/comment`, method="post")
+            label Add your comment
+            textarea(name="content", rows="4", required)
+            button.read-more(type="submit") Post Comment
+      else
+        .info-box
+          p You need to log in to comment.
+          a.read-more(href="/login") Log In
+
+      if comments.length > 0
+        each comment in comments
+          .comment.comment-card
+            .comment-head
+              img.comment-avatar(src=comment.profile_image || "/default-avatar.svg", alt="user")
+              strong #{comment.username}
+            p #{comment.content}
+      else
+        .info-box
+          p No comments yet.

@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  .simple-page
+    .form-box
+      h2 Account Security
+      if message
+        p.success-message #{message}
+      if error
+        p.error-message #{error}
+
+      form(action="/account-security", method="post")
+        label Current Password
+        input(type="password", name="current_password", required)
+
+        label New Password
+        input(type="password", name="new_password", required)
+
+        label Confirm Password
+        input(type="password", name="confirm_password", required)
+
+        button.read-more(type="submit") Update Password

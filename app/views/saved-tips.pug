@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  .page-shell
+    h1.page-title Saved / Bookmarked Tips
+
+    if data.length > 0
+      .card-grid
+        each tip in data
+          .card.tip-card
+            .tip-card-top
+              .tip-author
+                img.author-avatar(src=tip.profile_image || "/default-avatar.svg", alt="user")
+                div
+                  h3 #{tip.title}
+                  p.small-meta By #{tip.username}
+              .tip-menu
+                button.menu-btn(type="button") ⋯
+                .menu-dropdown
+                  a(href=`/tips/${tip.id}`) View Tip
+                  form(action=`/unsave-tip/${tip.id}`, method="post")
+                    button.dropdown-action(type="submit") Remove Saved Tip
+
+            p
+              strong Game:
+              |  #{tip.game_name}
+            p.tip-text #{tip.content}
+            a.read-more(href=`/tips/${tip.id}`) Read More
+    else
+      .info-box
+        h2 No saved tips yet
+        p You have not saved any tips yet.
+        a.read-more(href="/tips") Browse Tips

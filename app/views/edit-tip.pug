@@ -1,0 +1,17 @@
+extends layout
+
+block content
+extends layout
+
+block content
+  .simple-page
+    .form-box
+      h2 Edit Tip
+      form(action=`/tips/${tip.id}/edit`, method="post")
+        label Tip Title
+        input(type="text", name="title", value=tip.title, required)
+        label Game Name
+        input(type="text", name="game_name", value=tip.game_name, required)
+        label Tip Description
+        textarea(name="content", rows="6", required)= tip.content
+        button.read-more(type="submit") Update Tip

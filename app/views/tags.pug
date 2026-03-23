@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  .page-shell
+    h1.page-title Game Categories
+    .card-grid
+      each tag in data
+        .card
+          h3 #{tag.tag_name}
+          p
+            strong Tips:
+            |  #{tag.total_tips}
+          span.badge Category

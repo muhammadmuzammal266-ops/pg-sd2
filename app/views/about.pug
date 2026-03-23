@@ -1,0 +1,66 @@
+extends layout
+
+block content
+  .about-page
+    .about-hero
+      .about-hero-text
+        h1 About Info Games
+        p A community platform where gamers discover tips, share strategies, and connect through useful game knowledge.
+      .about-hero-image
+        img(src="/images/about-hero.jpg", alt="about")
+
+    .about-grid
+      .about-card
+        h2 Why Info Games?
+        p We built Info Games to give players a simple, attractive place to share useful tricks, gameplay ideas, and winning strategies.
+
+      .about-card
+        h2 What You Can Do
+        ul
+          li Explore helpful tips
+          li Save your favourite posts
+          li Comment on strategies
+          li Share your own gaming experience
+
+    .contact-panel
+      .contact-intro
+        h2 Tell Us
+        p We would love to hear your thoughts, ideas, support needs, and suggestions for making Info Games even better.
+      .contact-image
+        img(src="/images/contact-side.jpg", alt="contact")
+
+    .contact-form-wrap
+      .contact-form-box
+        if message
+          p.success-message #{message}
+
+        form(action="/about", method="post")
+          .subject-row
+            .subject-label Subject
+            .subject-options
+              label
+                input(type="radio", name="subject_type", value="Website Feedback", checked)
+                |  Website Feedback
+              label
+                input(type="radio", name="subject_type", value="Feature Request")
+                |  Feature Request
+              label
+                input(type="radio", name="subject_type", value="Help Request")
+                |  Help Request
+              label
+                input(type="radio", name="subject_type", value="Other")
+                |  Other
+
+          .contact-field
+            label Name
+            input(type="text", name="name", required)
+
+          .contact-field
+            label Email
+            input(type="email", name="email", required)
+
+          .contact-field
+            label Message
+            textarea(name="message", rows="6", required)
+
+          button.read-more(type="submit") Submit Contact Form

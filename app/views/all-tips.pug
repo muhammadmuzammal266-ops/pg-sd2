@@ -1,0 +1,43 @@
+extends layout
+
+block content
+  .page-shell
+    h1.page-title All Gaming Tips
+
+    if data.length > 0
+      .card-grid
+        each tip in data
+          .card.tip-card
+            .tip-card-top
+              .tip-author
+                img.author-avatar(src=tip.profile_image || "/default-avatar.svg", alt="user")
+                div
+                  h3 #{tip.title}
+                  p.small-meta By #{tip.username}
+              .tip-menu
+                button.menu-btn(type="button") ⋯
+                .menu-dropdown
+                  a(href=`/tips/${tip.id}`) View Tip
+                  if currentUser && currentUser.id === tip.user_id
+                    a(href=`/tips/${tip.id}/edit`) Edit Tip
+                    form(action=`/tips/${tip.id}/delete`, method="post")
+                      button.dropdown-action(type="submit") Delete Tip
+                  else if currentUser
+                    if savedIds.includes(tip.id)
+                      form(action=`/unsave-tip/${tip.id}`, method="post")
+                        button.dropdown-action(type="submit") Remove Saved Tip
+                    else
+                      form(action=`/save-tip/${tip.id}`, method="post")
+                        button.dropdown-action(type="submit") Save Tip
+                  else
+                    a(href="/login") Log in to Save
+
+            p
+              strong Game:
+              |  #{tip.game_name}
+            p.tip-text #{tip.content}
+            a.read-more(href=`/tips/${tip.id}`) Read More
+    else
+      .info-box
+        h2 No tips found
+        p There are no tips in the database yet.

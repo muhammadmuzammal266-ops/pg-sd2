@@ -1,28 +1,49 @@
-version: '3.3'
 services:
   web:
     build:
-      context: ./
-    volumes:
-      - .:/src
-    command: supervisor -e  'js,pug,html' index.js
+      context: .
+    container_name: pg-sd2-web
     ports:
       - "3000:3000"
+    volumes:
+      - .:/src
+      - /src/node_modules
+    command: npm start
     depends_on:
       - db
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: admin
+      MYSQL_PASS: password
+      MYSQL_DATABASE: sd2-db
+      DB_PORT: 3306
+
   db:
-    image: mysql
+    image: mysql:8.0
+    container_name: pg-sd2-db
     restart: always
-    env_file:
-      - ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: sd2-db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
     ports:
       - "3308:3306"
     volumes:
-      - ./db:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
+    container_name: pg-sd2-phpmyadmin
     restart: always
-    env_file:
-      - ./.env
     ports:
       - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: password
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:

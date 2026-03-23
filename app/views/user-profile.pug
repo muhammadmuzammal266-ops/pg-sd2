@@ -1,0 +1,35 @@
+extends layout
+
+block content
+  .profile-page
+    .profile-banner
+      img.profile-banner-avatar(src=user.profile_image || "/default-avatar.svg", alt="profile")
+      .profile-banner-text
+        h1 #{user.username}
+        p.profile-email #{user.email}
+        p.profile-bio #{user.bio}
+        .profile-stats
+          .stat-box
+            strong #{tips.length}
+            span Tips Shared
+          .stat-box
+            strong #{savedCount}
+            span Saved Tips
+
+    .container
+      h2.section-heading Shared Tips
+
+      if tips.length > 0
+        .card-grid
+          each tip in tips
+            .card
+              h3 #{tip.title}
+              p
+                strong Game:
+                |  #{tip.game_name}
+              p.tip-text #{tip.content}
+              a.read-more(href=`/tips/${tip.id}`) View Tip
+      else
+        .info-box
+          h2 No tips yet
+          p This user has not shared any tips yet.

@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  .page-shell
+    h1.page-title Users List
+    .card-grid
+      each user in data
+        .card
+          .tip-author
+            img.author-avatar(src=user.profile_image || "/default-avatar.svg", alt="user")
+            div
+              h3 #{user.username}
+              p.small-meta #{user.email}
+          p.tip-text #{user.bio}
+          if user.tips_count !== undefined
+            p
+              strong Tips shared:
+              |  #{user.tips_count}
+          a.read-more(href=`/users/${user.id}`) View Profile

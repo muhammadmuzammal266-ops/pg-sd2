@@ -1,3 +1,7 @@
-.git
 node_modules
 npm-debug.log
+.git
+.gitignore
+.env
+db/mysql.sock
+db/*.sock
