@@ -10,14 +10,19 @@ block content
           .card.tip-card
             .tip-card-top
               .tip-author
-                img.author-avatar(src=tip.profile_image || "/default-avatar.svg", alt="user")
+                img.author-avatar(
+                  src=(tip.profile_image && tip.profile_image.startsWith('/images/')) ? tip.profile_image : "/images/default-avatar.jpg",
+                  alt="user"
+                )
                 div
                   h3 #{tip.title}
                   p.small-meta By #{tip.username}
+
               .tip-menu
                 button.menu-btn(type="button") ⋯
                 .menu-dropdown
                   a(href=`/tips/${tip.id}`) View Tip
+
                   if currentUser && currentUser.id === tip.user_id
                     a(href=`/tips/${tip.id}/edit`) Edit Tip
                     form(action=`/tips/${tip.id}/delete`, method="post")
@@ -35,7 +40,22 @@ block content
             p
               strong Game:
               |  #{tip.game_name}
+
             p.tip-text #{tip.content}
+
+            .tip-actions
+              if currentUser
+                if likedIds.includes(tip.id)
+                  form(action=`/unlike-tip/${tip.id}`, method="post")
+                    button.like-btn.liked(type="submit") ♥ Liked
+                else
+                  form(action=`/like-tip/${tip.id}`, method="post")
+                    button.like-btn(type="submit") ♡ Like
+              else
+                a.like-btn(href="/login") ♡ Like
+
+              span.like-count #{tip.like_count} likes
+
             a.read-more(href=`/tips/${tip.id}`) Read More
     else
       .info-box

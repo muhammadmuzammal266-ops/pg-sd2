@@ -2,13 +2,17 @@ extends layout
 
 block content
   .page-shell
-    .detail-box
+    .single-tip-card
       .tip-card-top
         .tip-author
-          img.author-avatar.large(src=tip.profile_image || "/default-avatar.svg", alt="user")
+          img.author-avatar(
+            src=(tip.profile_image && tip.profile_image.startsWith('/images/')) ? tip.profile_image : "/images/default-avatar.jpg",
+            alt="user"
+          )
           div
-            h1.page-title #{tip.title}
-            p.small-meta Posted by #{tip.username}
+            h1 #{tip.title}
+            p.small-meta By #{tip.username}
+
         .tip-menu
           button.menu-btn(type="button") ⋯
           .menu-dropdown
@@ -29,31 +33,44 @@ block content
       p
         strong Game:
         |  #{tip.game_name}
-      p
-        strong Description:
-        |  #{tip.content}
+
+      p.tip-text #{tip.content}
+
+      .tip-actions
+        if currentUser
+          if isLiked
+            form(action=`/unlike-tip/${tip.id}`, method="post")
+              button.like-btn.liked(type="submit") ♥ Liked
+          else
+            form(action=`/like-tip/${tip.id}`, method="post")
+              button.like-btn(type="submit") ♡ Like
+        else
+          a.like-btn(href="/login") ♡ Like
+
+        span.like-count #{tip.like_count} likes
 
     .comments-section
-      h2.section-heading Comments
+      h2 Comments
 
       if currentUser
-        .form-box.comment-form-box
-          form(action=`/tips/${tip.id}/comment`, method="post")
-            label Add your comment
-            textarea(name="content", rows="4", required)
-            button.read-more(type="submit") Post Comment
+        form.comment-form(action=`/tips/${tip.id}/comment`, method="post")
+          textarea(name="content", rows="4", placeholder="Write your comment here...", required)
+          button(type="submit") Post Comment
       else
-        .info-box
-          p You need to log in to comment.
-          a.read-more(href="/login") Log In
+        p
+          a(href="/login") Log in
+          |  to comment.
 
       if comments.length > 0
         each comment in comments
-          .comment.comment-card
-            .comment-head
-              img.comment-avatar(src=comment.profile_image || "/default-avatar.svg", alt="user")
-              strong #{comment.username}
-            p #{comment.content}
+          .comment-card
+            .comment-author
+              img.author-avatar(
+                src=(comment.profile_image && comment.profile_image.startsWith('/images/')) ? comment.profile_image : "/images/default-avatar.jpg",
+                alt="user"
+              )
+              div
+                strong #{comment.username}
+            p.comment-text #{comment.content}
       else
-        .info-box
-          p No comments yet.
+        p No comments yet.

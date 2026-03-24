@@ -4,16 +4,21 @@ block content
   .simple-page
     .form-box
       h2 Add a New Tip
+
       if message
         p.success-message #{message}
+
       if error
         p.error-message #{error}
 
       form(action="/add-tip", method="post")
         label Tip Title
         input(type="text", name="title", required)
+
         label Game Name
         input(type="text", name="game_name", required)
+
         label Tip Description
         textarea(name="content", rows="6", required)
+
         button.read-more(type="submit") Submit Tip

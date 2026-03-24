@@ -37,6 +37,20 @@ block content
             p
               strong Game:
               |  #{tip.game_name}
+
+            .tip-actions
+              if currentUser
+                if likedIds.includes(tip.id)
+                  form(action=`/unlike-tip/${tip.id}`, method="post")
+                    button.like-btn.liked(type="submit") ♥ Liked
+                else
+                  form(action=`/like-tip/${tip.id}`, method="post")
+                    button.like-btn(type="submit") ♡ Like
+              else
+                a.like-btn(href="/login") ♡ Like
+
+              span.like-count #{tip.like_count} likes
+
             a.read-more(href=`/tips/${tip.id}`) View Tip
     else
       .info-box

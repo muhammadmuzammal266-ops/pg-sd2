@@ -1,34 +1,43 @@
 document.addEventListener("DOMContentLoaded", function () {
+
+  // ✅ IMAGE SLIDES (NOT gradients anymore)
   const slideThemes = {
     home: [
-      "linear-gradient(135deg, #2563eb, #7c3aed)",
-      "linear-gradient(135deg, #0ea5e9, #2563eb)",
-      "linear-gradient(135deg, #8b5cf6, #ec4899)"
+      "url('/images/about-hero.jpg')",
+      
     ],
     action: [
-      "linear-gradient(135deg, #ef4444, #f97316)",
-      "linear-gradient(135deg, #dc2626, #fb7185)",
-      "linear-gradient(135deg, #f97316, #eab308)"
+      "url('/images/action1.jpg')",
+      "url('/images/action2.jpg')",
+      "url('/images/action3.jpg')"
     ],
     strategy: [
-      "linear-gradient(135deg, #2563eb, #06b6d4)",
-      "linear-gradient(135deg, #1d4ed8, #0ea5e9)",
-      "linear-gradient(135deg, #3b82f6, #14b8a6)"
+      "url('/images/strategy1.jpg')",
+      "url('/images/strategy2.jpg')",
+      "url('/images/strategy3.jpg')"
     ],
     racing: [
-      "linear-gradient(135deg, #111827, #ef4444)",
-      "linear-gradient(135deg, #1f2937, #f59e0b)",
-      "linear-gradient(135deg, #0f172a, #3b82f6)"
+      "url('/images/racing1.jpg')",
+      "url('/images/racing2.jpg')",
+      "url('/images/racing3.jpg')"
+    ],
+    survival: [
+      "url('/images/survival1.jpg')",
+      "url('/images/survival2.jpg')",
+      "url('/images/survival3.jpg')"
     ]
   };
 
+  // ✅ AUTO IMAGE SLIDER
   document.querySelectorAll(".auto-slide").forEach((card) => {
     const theme = card.dataset.theme;
     const slides = slideThemes[theme] || slideThemes.home;
     let index = 0;
 
     function rotate() {
-      card.style.background = slides[index];
+      card.style.backgroundImage = slides[index];
+      card.style.backgroundSize = "cover";
+      card.style.backgroundPosition = "center";
       index = (index + 1) % slides.length;
     }
 
@@ -36,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setInterval(rotate, 3000);
   });
 
+  // ✅ DARK MODE
   const toggle = document.getElementById("themeToggle");
 
   if (localStorage.getItem("theme") === "dark") {
@@ -55,6 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ✅ MENU DROPDOWN
   document.querySelectorAll(".menu-btn").forEach((btn) => {
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -75,4 +86,5 @@ document.addEventListener("DOMContentLoaded", function () {
       menu.classList.remove("show-menu");
     });
   });
+
 });

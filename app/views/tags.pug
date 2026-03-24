@@ -3,11 +3,15 @@ extends layout
 block content
   .page-shell
     h1.page-title Game Categories
-    .card-grid
-      each tag in data
-        .card
-          h3 #{tag.tag_name}
-          p
-            strong Tips:
-            |  #{tag.total_tips}
-          span.badge Category
+
+    if data.length > 0
+      .card-grid
+        each tag in data
+          .card
+            h3 #{tag.tag_name}
+            p Tips: #{tag.total_tips}
+            a.badge(href=`/tags/${tag.id}`) View Tips
+    else
+      .info-box
+        h2 No categories found
+        p There are no categories available yet.

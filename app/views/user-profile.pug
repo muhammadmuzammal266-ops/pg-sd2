@@ -3,11 +3,16 @@ extends layout
 block content
   .profile-page
     .profile-banner
-      img.profile-banner-avatar(src=user.profile_image || "/default-avatar.svg", alt="profile")
+      img.profile-banner-avatar(
+        src=(user.profile_image && user.profile_image.startsWith('/images/')) ? user.profile_image : "/images/default-avatar.jpg",
+        alt="profile"
+      )
+
       .profile-banner-text
         h1 #{user.username}
         p.profile-email #{user.email}
         p.profile-bio #{user.bio}
+
         .profile-stats
           .stat-box
             strong #{tips.length}
@@ -16,18 +21,35 @@ block content
             strong #{savedCount}
             span Saved Tips
 
+        if currentUser && currentUser.id === user.id
+          a.read-more(href="/add-tip") Add Tip
+
     .container
       h2.section-heading Shared Tips
 
       if tips.length > 0
         .card-grid
           each tip in tips
-            .card
-              h3 #{tip.title}
+            .card.tip-card
+              .tip-card-top
+                .tip-author
+                  h3 #{tip.title}
+
+                if currentUser && currentUser.id === user.id
+                  .tip-menu
+                    button.menu-btn(type="button") ⋯
+                    .menu-dropdown
+                      a(href=`/tips/${tip.id}`) View Tip
+                      a(href=`/tips/${tip.id}/edit`) Edit Tip
+                      form(action=`/tips/${tip.id}/delete`, method="post")
+                        button.dropdown-action(type="submit") Delete Tip
+
               p
                 strong Game:
                 |  #{tip.game_name}
+
               p.tip-text #{tip.content}
+
               a.read-more(href=`/tips/${tip.id}`) View Tip
       else
         .info-box

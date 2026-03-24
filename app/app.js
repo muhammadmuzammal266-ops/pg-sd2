@@ -93,7 +93,7 @@ app.post("/signup", async (req, res) => {
 
     await db.query(
       "INSERT INTO users (username, email, password, bio, profile_image) VALUES (?, ?, ?, ?, ?)",
-      [username, email, password, bio || "New gamer on Info Games", "/default-avatar.svg"]
+      [username, email, password, bio || "New gamer on Info Games", "/images/default-avatar.jpg"]
     );
 
     res.render("signup", {
@@ -116,25 +116,40 @@ app.get("/logout", (req, res) => {
 app.get("/tips", async (req, res) => {
   try {
     const tips = await db.query(`
-      SELECT tips.*, users.username, users.profile_image
+      SELECT 
+        tips.*,
+        users.username,
+        users.profile_image,
+        COUNT(tip_likes.id) AS like_count
       FROM tips
       JOIN users ON tips.user_id = users.id
+      LEFT JOIN tip_likes ON tips.id = tip_likes.tip_id
+      GROUP BY tips.id, users.username, users.profile_image
       ORDER BY tips.id DESC
     `);
 
     let savedIds = [];
+    let likedIds = [];
+
     if (req.session.user) {
       const saved = await db.query(
         "SELECT tip_id FROM saved_tips WHERE user_id = ?",
         [req.session.user.id]
       );
-      savedIds = saved.map(item => item.tip_id);
+      savedIds = saved.map((item) => item.tip_id);
+
+      const liked = await db.query(
+        "SELECT tip_id FROM tip_likes WHERE user_id = ?",
+        [req.session.user.id]
+      );
+      likedIds = liked.map((item) => item.tip_id);
     }
 
     res.render("all-tips", {
       title: "All Tips",
       data: tips,
-      savedIds
+      savedIds,
+      likedIds
     });
   } catch (err) {
     console.error(err);
@@ -147,10 +162,16 @@ app.get("/tips/:id", async (req, res) => {
     const tipId = req.params.id;
 
     const tipRows = await db.query(
-      `SELECT tips.*, users.username, users.profile_image
+      `SELECT 
+         tips.*,
+         users.username,
+         users.profile_image,
+         COUNT(tip_likes.id) AS like_count
        FROM tips
        JOIN users ON tips.user_id = users.id
-       WHERE tips.id = ?`,
+       LEFT JOIN tip_likes ON tips.id = tip_likes.tip_id
+       WHERE tips.id = ?
+       GROUP BY tips.id, users.username, users.profile_image`,
       [tipId]
     );
 
@@ -168,19 +189,28 @@ app.get("/tips/:id", async (req, res) => {
     );
 
     let isSaved = false;
+    let isLiked = false;
+
     if (req.session.user) {
       const saved = await db.query(
         "SELECT id FROM saved_tips WHERE user_id = ? AND tip_id = ?",
         [req.session.user.id, tipId]
       );
       isSaved = saved.length > 0;
+
+      const liked = await db.query(
+        "SELECT id FROM tip_likes WHERE user_id = ? AND tip_id = ?",
+        [req.session.user.id, tipId]
+      );
+      isLiked = liked.length > 0;
     }
 
     res.render("single-tip", {
       title: "Tip Details",
       tip: tipRows[0],
       comments: commentRows,
-      isSaved
+      isSaved,
+      isLiked
     });
   } catch (err) {
     console.error(err);
@@ -222,6 +252,7 @@ app.get("/tips/:id/edit", requireLogin, async (req, res) => {
     const tips = await db.query("SELECT * FROM tips WHERE id = ?", [tipId]);
 
     if (tips.length === 0) return res.status(404).send("Tip not found");
+
     if (tips[0].user_id !== req.session.user.id) {
       return res.status(403).send("You can only edit your own tip.");
     }
@@ -244,6 +275,7 @@ app.post("/tips/:id/edit", requireLogin, async (req, res) => {
     const tips = await db.query("SELECT * FROM tips WHERE id = ?", [tipId]);
 
     if (tips.length === 0) return res.status(404).send("Tip not found");
+
     if (tips[0].user_id !== req.session.user.id) {
       return res.status(403).send("You can only edit your own tip.");
     }
@@ -266,6 +298,7 @@ app.post("/tips/:id/delete", requireLogin, async (req, res) => {
     const tips = await db.query("SELECT * FROM tips WHERE id = ?", [tipId]);
 
     if (tips.length === 0) return res.status(404).send("Tip not found");
+
     if (tips[0].user_id !== req.session.user.id) {
       return res.status(403).send("You can only delete your own tip.");
     }
@@ -321,21 +354,60 @@ app.post("/unsave-tip/:id", requireLogin, async (req, res) => {
   }
 });
 
+app.post("/like-tip/:id", requireLogin, async (req, res) => {
+  try {
+    await db.query(
+      "INSERT IGNORE INTO tip_likes (user_id, tip_id) VALUES (?, ?)",
+      [req.session.user.id, req.params.id]
+    );
+    res.redirect(req.get("referer") || "/tips");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Database error");
+  }
+});
+
+app.post("/unlike-tip/:id", requireLogin, async (req, res) => {
+  try {
+    await db.query(
+      "DELETE FROM tip_likes WHERE user_id = ? AND tip_id = ?",
+      [req.session.user.id, req.params.id]
+    );
+    res.redirect(req.get("referer") || "/tips");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Database error");
+  }
+});
+
 app.get("/saved-tips", requireLogin, async (req, res) => {
   try {
     const rows = await db.query(
-      `SELECT tips.*, users.username, users.profile_image
+      `SELECT 
+         tips.*,
+         users.username,
+         users.profile_image,
+         COUNT(tip_likes.id) AS like_count
        FROM saved_tips
        JOIN tips ON saved_tips.tip_id = tips.id
        JOIN users ON tips.user_id = users.id
+       LEFT JOIN tip_likes ON tips.id = tip_likes.tip_id
        WHERE saved_tips.user_id = ?
-       ORDER BY saved_tips.id DESC`,
+       GROUP BY tips.id, users.username, users.profile_image
+       ORDER BY tips.id DESC`,
       [req.session.user.id]
     );
 
+    const liked = await db.query(
+      "SELECT tip_id FROM tip_likes WHERE user_id = ?",
+      [req.session.user.id]
+    );
+    const likedIds = liked.map((item) => item.tip_id);
+
     res.render("saved-tips", {
       title: "Saved Tips",
-      data: rows
+      data: rows,
+      likedIds
     });
   } catch (err) {
     console.error(err);
@@ -352,33 +424,49 @@ app.get("/search", async (req, res) => {
         title: "Search Results",
         query: "",
         data: [],
-        savedIds: []
+        savedIds: [],
+        likedIds: []
       });
     }
 
     const rows = await db.query(
-      `SELECT tips.*, users.username, users.profile_image
+      `SELECT 
+         tips.*,
+         users.username,
+         users.profile_image,
+         COUNT(tip_likes.id) AS like_count
        FROM tips
        JOIN users ON tips.user_id = users.id
+       LEFT JOIN tip_likes ON tips.id = tip_likes.tip_id
        WHERE tips.title LIKE ? OR tips.game_name LIKE ? OR tips.content LIKE ?
+       GROUP BY tips.id, users.username, users.profile_image
        ORDER BY tips.id DESC`,
       [`%${q}%`, `%${q}%`, `%${q}%`]
     );
 
     let savedIds = [];
+    let likedIds = [];
+
     if (req.session.user) {
       const saved = await db.query(
         "SELECT tip_id FROM saved_tips WHERE user_id = ?",
         [req.session.user.id]
       );
-      savedIds = saved.map(item => item.tip_id);
+      savedIds = saved.map((item) => item.tip_id);
+
+      const liked = await db.query(
+        "SELECT tip_id FROM tip_likes WHERE user_id = ?",
+        [req.session.user.id]
+      );
+      likedIds = liked.map((item) => item.tip_id);
     }
 
     res.render("search-results", {
       title: "Search Results",
       query: q,
       data: rows,
-      savedIds
+      savedIds,
+      likedIds
     });
   } catch (err) {
     console.error(err);
@@ -389,8 +477,7 @@ app.get("/search", async (req, res) => {
 app.get("/users", async (req, res) => {
   try {
     const rows = await db.query(`
-      SELECT users.*,
-             COUNT(tips.id) AS tips_count
+      SELECT users.*, COUNT(tips.id) AS tips_count
       FROM users
       LEFT JOIN tips ON users.id = tips.user_id
       GROUP BY users.id
@@ -419,7 +506,14 @@ app.get("/users/:id", async (req, res) => {
     if (users.length === 0) return res.status(404).send("User not found");
 
     const tips = await db.query(
-      "SELECT * FROM tips WHERE user_id = ? ORDER BY id DESC",
+      `SELECT 
+         tips.*,
+         COUNT(tip_likes.id) AS like_count
+       FROM tips
+       LEFT JOIN tip_likes ON tips.id = tip_likes.tip_id
+       WHERE tips.user_id = ?
+       GROUP BY tips.id
+       ORDER BY tips.id DESC`,
       [userId]
     );
 
@@ -428,11 +522,21 @@ app.get("/users/:id", async (req, res) => {
       [userId]
     );
 
+    let likedIds = [];
+    if (req.session.user) {
+      const liked = await db.query(
+        "SELECT tip_id FROM tip_likes WHERE user_id = ?",
+        [req.session.user.id]
+      );
+      likedIds = liked.map((item) => item.tip_id);
+    }
+
     res.render("user-profile", {
       title: "User Profile",
       user: users[0],
       tips,
-      savedCount: savedCount[0].total
+      savedCount: savedCount[0].total,
+      likedIds
     });
   } catch (err) {
     console.error(err);
@@ -485,6 +589,124 @@ app.get("/tags", async (req, res) => {
     res.render("tags", {
       title: "Tags",
       data: rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Database error");
+  }
+});
+
+app.get("/tags/:id", async (req, res) => {
+  try {
+    const tagId = req.params.id;
+
+    const tagRows = await db.query(
+      "SELECT * FROM tags WHERE id = ?",
+      [tagId]
+    );
+
+    if (tagRows.length === 0) {
+      return res.status(404).send("Tag not found");
+    }
+
+    const rows = await db.query(
+      `SELECT 
+         tips.*,
+         users.username,
+         users.profile_image,
+         COUNT(tip_likes.id) AS like_count
+       FROM tip_tags
+       JOIN tips ON tip_tags.tip_id = tips.id
+       JOIN users ON tips.user_id = users.id
+       LEFT JOIN tip_likes ON tips.id = tip_likes.tip_id
+       WHERE tip_tags.tag_id = ?
+       GROUP BY tips.id, users.username, users.profile_image
+       ORDER BY tips.id DESC`,
+      [tagId]
+    );
+
+    let savedIds = [];
+    let likedIds = [];
+
+    if (req.session.user) {
+      const saved = await db.query(
+        "SELECT tip_id FROM saved_tips WHERE user_id = ?",
+        [req.session.user.id]
+      );
+      savedIds = saved.map((item) => item.tip_id);
+
+      const liked = await db.query(
+        "SELECT tip_id FROM tip_likes WHERE user_id = ?",
+        [req.session.user.id]
+      );
+      likedIds = liked.map((item) => item.tip_id);
+    }
+
+    res.render("tag-tips", {
+      title: tagRows[0].tag_name + " Tips",
+      tag: tagRows[0],
+      data: rows,
+      savedIds,
+      likedIds
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Database error");
+  }
+});
+
+app.get("/category/:name", async (req, res) => {
+  try {
+    const tagName = req.params.name;
+
+    const tagRows = await db.query(
+      "SELECT * FROM tags WHERE LOWER(tag_name) = LOWER(?)",
+      [tagName]
+    );
+
+    if (tagRows.length === 0) {
+      return res.status(404).send("Category not found");
+    }
+
+    const rows = await db.query(
+      `SELECT 
+         tips.*,
+         users.username,
+         users.profile_image,
+         COUNT(tip_likes.id) AS like_count
+       FROM tip_tags
+       JOIN tips ON tip_tags.tip_id = tips.id
+       JOIN users ON tips.user_id = users.id
+       LEFT JOIN tip_likes ON tips.id = tip_likes.tip_id
+       WHERE tip_tags.tag_id = ?
+       GROUP BY tips.id, users.username, users.profile_image
+       ORDER BY tips.id DESC`,
+      [tagRows[0].id]
+    );
+
+    let savedIds = [];
+    let likedIds = [];
+
+    if (req.session.user) {
+      const saved = await db.query(
+        "SELECT tip_id FROM saved_tips WHERE user_id = ?",
+        [req.session.user.id]
+      );
+      savedIds = saved.map((item) => item.tip_id);
+
+      const liked = await db.query(
+        "SELECT tip_id FROM tip_likes WHERE user_id = ?",
+        [req.session.user.id]
+      );
+      likedIds = liked.map((item) => item.tip_id);
+    }
+
+    res.render("tag-tips", {
+      title: tagRows[0].tag_name + " Tips",
+      tag: tagRows[0],
+      data: rows,
+      savedIds,
+      likedIds
     });
   } catch (err) {
     console.error(err);

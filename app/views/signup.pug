@@ -12,12 +12,16 @@ block content
       form(action="/signup", method="post")
         label Username
         input(type="text", name="username", required)
+
         label Email
         input(type="email", name="email", required)
+
         label Password
         input(type="password", name="password", required)
+
         label Bio
         textarea(name="bio", rows="4")
+
         button.read-more(type="submit") Create Account
 
       p.form-link

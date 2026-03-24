@@ -810,3 +810,111 @@ body.dark-theme .dropdown-action:hover {
     text-align: center;
   }
 }
+.tip-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 16px;
+  flex-wrap: wrap;
+}
+
+.single-tip-actions {
+  margin-top: 18px;
+}
+
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  color: #e11d48;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  min-width: 96px;
+}
+
+.like-btn:hover {
+  background: #ffe4e6;
+  border-color: #fecdd3;
+}
+
+.like-btn.liked {
+  background: linear-gradient(135deg, #f43f5e, #ec4899);
+  color: white;
+  border: none;
+}
+
+.like-count {
+  font-weight: 700;
+  color: #475569;
+}
+
+body.dark-theme .like-btn {
+  background: #111827;
+  color: #fb7185;
+  border-color: #374151;
+}
+
+body.dark-theme .like-btn:hover {
+  background: #1f2937;
+}
+
+body.dark-theme .like-btn.liked {
+  background: linear-gradient(135deg, #f43f5e, #db2777);
+  color: white;
+}
+
+body.dark-theme .like-count {
+  color: #e5e7eb;
+}
+.auto-slide {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.hero-right.auto-slide[data-theme="home"] {
+  background-image: url("/images/about-hero.jpg");
+}
+
+.home-card.auto-slide[data-theme="action"] {
+  background-image: url("/images/action1.jpg");
+}
+
+.home-card.auto-slide[data-theme="strategy"] {
+  background-image: url("/images/strategy1.jpg");
+}
+
+.home-card.auto-slide[data-theme="racing"] {
+  background-image: url("/images/racing1.jpg");
+}
+
+.home-card.auto-slide[data-theme="survival"] {
+  background-image: url("/images/survival1.jpg");
+}
+
+.hero-right,
+.home-card {
+  position: relative;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+.hero-right::before,
+.home-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.22);
+  z-index: 1;
+}
+
+.hero-card,
+.home-card > * {
+  position: relative;
+  z-index: 2;
+}
